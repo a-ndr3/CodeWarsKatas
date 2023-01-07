@@ -12,13 +12,6 @@ namespace check1
         {
             if (String.IsNullOrEmpty(str)) return new Dictionary<char, int>();
 
-            //var x = new Dictionary<char, int>();
-
-            //foreach (var item in str)
-            //{
-            //    x.Add(item,)
-            //}
-
             var query = str.GroupBy(x => x)
                             .Select(y => new { Key = y, value = y.Count() })
                                 .ToDictionary(x => x.Key.Key, x => x.value);
