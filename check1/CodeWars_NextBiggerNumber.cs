@@ -8,27 +8,63 @@ namespace check1
 {
     internal class CodeWars_NextBiggerNumber
     {
+        public static IEnumerable<IEnumerable<T>> Permutate<T>(IEnumerable<T> source)
+        {
+            var xs = source.ToArray();
+            return xs.Length == 1 ? new[] { xs } : (
+                        from n in Enumerable.Range(0, xs.Length)
+                        let cs = xs.Skip(n).Take(1)
+                        let dss = Permutate<T>(xs.Take(n).Concat(xs.Skip(n + 1)))
+                        from ds in dss
+                        select cs.Concat(ds)
+                    ).Distinct(new EnumerableEqualityComparer<T>());
+        }
+
+        IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> items, int count)
+        {
+            int i = 0;
+            foreach (var item in items)
+            {
+                if (count == 1)
+                    yield return new T[] { item };
+                else
+                {
+                    foreach (var result in GetPermutations(items.Skip(i + 1), count - 1))
+                        yield return new T[] { item }.Concat(result);
+                }
+
+                ++i;
+            }
+        }
+
+        private class EnumerableEqualityComparer<T> : IEqualityComparer<IEnumerable<T>>
+        {
+            public bool Equals(IEnumerable<T> a, IEnumerable<T> b)
+            {
+                return a.SequenceEqual(b);
+            }
+
+            public int GetHashCode(IEnumerable<T> t)
+            {
+                return t.Take(1).Aggregate(0, (a, x) => a ^ x.GetHashCode());
+            }
+        }
+
+
         public class BiggerNumberFinder
         {
             private char[] number;
+            private long numberValue;
 
             public BiggerNumberFinder(long number)
             {
+                this.numberValue = number;
                 this.number = number.ToString().ToCharArray();
-            }
-
-            static IEnumerable<IEnumerable<T>>
-    GetKCombsWithRept<T>(IEnumerable<T> list, int length) where T : IComparable
-            {
-                if (length == 1) return list.Select(t => new T[] { t });
-                return GetKCombsWithRept(list, length - 1)
-                    .SelectMany(t => list.Where(o => o.CompareTo(t.Last()) >= 0),
-                        (t1, t2) => t1.Concat(new T[] { t2 }));
             }
 
             private List<IEnumerable<long>> GetAllNumbersThatContainTheseDigits(long[] digits)
             {
-                return GetKCombsWithRept<long>(digits, digits.Length).ToList();
+                return Permutate(digits).ToList();           
             }
 
             private long[] GetSpecificAmountOfDigits(int length)
@@ -49,86 +85,41 @@ namespace check1
 
             private List<long> GetLongs(List<IEnumerable<long>> longs)
             {
-                var numbers = new List<long>();
+                var numbers = new HashSet<long>();
                 foreach (var item in longs)
                 {
                     numbers.Add(GetFullNumber(item));
                 }
-                return numbers;
+                return numbers.ToList();
             }
 
-            public long FindNextBiggerNumber()
+            public long DoJob()
             {
                 if (number.Length == 0 || number.Length == 1)
                 {
                     return -1;
                 }
 
-                for (int i = 2; i <= number.Length; i++)
+                var allNumbers = GetLongs(
+                       GetAllNumbersThatContainTheseDigits(GetSpecificAmountOfDigits(number.Length)));
+
+                var result = allNumbers.OrderBy(x => x).Where(y => y > numberValue);
+
+                if (result.Any())
                 {
-                    var tail = GetSpecificAmountOfDigits(i);
-
-                    var allNumbers = GetLongs(
-                        GetAllNumbersThatContainTheseDigits(
-                        tail));
-
-                    var numberFromTail = Convert.ToUInt32(String.Join("", tail));
-
-                    var seq = FindSeqWithSameDigitsAsTail(allNumbers.Where(y => y > numberFromTail),tail);
-
-                    if (!seq.Any()) continue;
-                    else
-                    {
-                        var nextNumber = seq.Min();
-
-                        return SwapTail(nextNumber);
-                    }
+                    return result.First();
                 }
-                return -1;
-            }
-            
-            private List<long> FindSeqWithSameDigitsAsTail(IEnumerable<long> longs,long[] tail)
-            {
-                var origin = tail.GroupBy(c => c).Select(c => new { Char = c.Key, Count = c.Count() });
-
-                var list = new List<long>();
-                
-                foreach (var item in longs)
+                else
                 {
-                    var tmp = item.ToString().ToCharArray()
-                        .Select(x => (long)Char.GetNumericValue(x)).ToArray()
-                        .GroupBy(c => c)
-                        .Select(c => new { Char = c.Key, Count = c.Count() });
-
-                    bool flag = false;
-                    foreach (var ch in origin)
-                    {
-                        var x = tmp.Where(x => x.Char == ch.Char);
-                        
-                        if (!x.Any() || x.First().Count != ch.Count)
-                        {
-                            flag = true;
-                            break; 
-                        }    
-                    }
-
-                    if (flag == false)
-                        list.Add(item);
+                    return -1;
                 }
-                return list;
             }
 
-            private long SwapTail(long nextNumber)
-            {
-                var temp = nextNumber.ToString();
-                var half = String.Join("", number.Take(number.Length - temp.Length));
-                return Convert.ToUInt32(String.Join("", half, temp));
-            }
         }
 
         public static long NextBiggerNumber(long n)
         {
-            return new BiggerNumberFinder(n).FindNextBiggerNumber();
+            return new BiggerNumberFinder(n).DoJob();
         }
     }
 }

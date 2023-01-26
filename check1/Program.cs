@@ -649,6 +649,12 @@ namespace OOtest
 
         static void Main()
         {
+            var xx = CodeWars_HighestScoringRecord.High("aaaaaa bbb c");
+
+            var solv = CodeWars_NextBiggerNumber.NextBiggerNumber(531);
+
+            CodeWars_BooleanOrder.BooleanOrder order = new CodeWars_BooleanOrder.BooleanOrder("ttftff", "|&^&&");
+            var x = order.Solve();
 
             Clinet clinet = new Clinet();
 
