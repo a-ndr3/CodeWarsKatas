@@ -31,11 +31,6 @@ namespace check1
 
             var selection2 = GetSelection(s2, 2);
 
-            //var selection3 = selection1.Concat(selection2)
-            //    .GroupBy(x => x.Symbol)
-            //    .Select(g => g.ToList().OrderBy(p => p.Amount).Last())
-            //    .OrderByDescending(x => x.Amount);
-
             var selection3 = GetFullCollectionOfChars(selection1, selection2);
 
             return selection3;
@@ -45,14 +40,6 @@ namespace check1
         {
             var firstList = GetCollection(collection1, collection2); 
             var secondList = GetCollection(collection2, firstList);
-            //var result = firstList.Concat(secondList).OrderByDescending(x => x.Amount).GroupBy(x => x.Amount)
-            //    .Select(y => y.OrderBy(y=>y.EqualCharAmount).ThenBy(z => z.Symbol).ToList()).ToList();
-
-            //var result = firstList.Concat(secondList)
-            //    .OrderByDescending(x => x.Amount)
-            //    .ThenByDescending(y=>y.StringNumber)
-            //    .ThenBy(z => z.Symbol)
-            //    .GroupBy(x => x.Amount).Select(u=>u.ToList()).ToList();
 
             var result = firstList.Concat(secondList)
               .OrderByDescending(x => x.Amount)
